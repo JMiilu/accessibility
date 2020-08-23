@@ -1,9 +1,12 @@
 const path = require('path');
 const fs = require('fs');
+
 const analyzePuppeteer = require('./analyzers/puppeteer');
 const analyzeAxe = require('./analyzers/axe');
 const analyzePa11y = require('./analyzers/pa11y');
 const analyzeA11y = require('./analyzers/a11y');
+const reportAxe = require('./reporters/axe');
+const reportPa11y = require('./reporters/pa11y');
 
 const HTML_FILE = 'index.html';
 const fileName = path.join(__dirname, HTML_FILE);
@@ -20,19 +23,18 @@ const writeResults = (fileName, data, json = true) => {
 };
 
 (async fileName => {
-  console.log('Analyze with Puppeteer');
   const puppeteerSnapshot = await analyzePuppeteer(fileName);
-  writeResults('reports/puppeteer.json', puppeteerSnapshot);
-
-  console.log('Analyze with Axe');
   const axeResults = await analyzeAxe(fileName);
-  writeResults('reports/axe.json', axeResults);
-
-  console.log('Analyze with Pa11y');
   const pa11yResults = await analyzePa11y(fileName);
-  writeResults('reports/pa11y.json', pa11yResults);
-
-  console.log('Analyze with A11y');
   const a11yResults = await analyzeA11y(fileName);
+
+  const axeHtml = reportAxe(axeResults);
+  const pa11yHtml = reportPa11y(pa11yResults);
+
+  writeResults('reports/puppeteer.json', puppeteerSnapshot);
+  writeResults('reports/axe.json', axeResults);
+  writeResults('reports/axe.html', axeHtml, false);
+  writeResults('reports/pa11y.json', pa11yResults);
+  writeResults('reports/pa11y.html', pa11yHtml, false);
   writeResults('reports/a11y.json', a11yResults);
 })(fileName);
